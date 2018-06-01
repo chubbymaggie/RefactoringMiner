@@ -641,6 +641,8 @@ public class UMLModelDiff {
 		   
 		   String originalPath = originalClass.getSourceFile();
 		   String movedPath = movedClass.getSourceFile();
+		   String originalPathPrefix = originalPath.substring(0, originalPath.lastIndexOf('/'));
+		   String movedPathPrefix = movedPath.substring(0, movedPath.lastIndexOf('/'));
 		   
 		   if (!originalName.equals(movedName)) {
 			   MoveClassRefactoring refactoring = new MoveClassRefactoring(originalName, movedName);
@@ -664,8 +666,8 @@ public class UMLModelDiff {
 					   renamePackageRefactorings.add(new RenamePackageRefactoring(refactoring));
 				   }
 			   }
-		   } else {
-			   MovedClassToAnotherSourceFolder refactoring = new MovedClassToAnotherSourceFolder(originalName, originalPath, movedPath);
+		   } else if(!originalPathPrefix.equals(movedPathPrefix)) {
+			   MovedClassToAnotherSourceFolder refactoring = new MovedClassToAnotherSourceFolder(originalName, originalPathPrefix, movedPathPrefix);
 			   RenamePattern renamePattern = refactoring.getRenamePattern();
 			   boolean foundInMatchingMoveSourceFolderRefactoring = false;
 			   for(MoveSourceFolderRefactoring moveSourceFolderRefactoring : moveSourceFolderRefactorings) {
@@ -804,21 +806,6 @@ public class UMLModelDiff {
 	                           new ExtractAndMoveOperationRefactoring(operationBodyMapper, mapper.getOperation2());
 	                      refactorings.add(extractOperationRefactoring);
 	                      deleteAddedOperation(addedOperation);
-                	  }
-                  }
-                  else if(addedOperation.getBody() != null && addedOperation.getBody().getCompositeStatement().getLeaves().size() == 1 &&
-                          !addedOperation.getClassName().equals(operationBodyMapper.getOperation1().getClassName())) {
-                	  UMLClassDiff classDiff = getUMLClassDiff(operationBodyMapper.getOperation1().getClassName());
-                	  if(classDiff != null && !classDiff.getExtractedDelegateOperations().isEmpty()) {
-                		  for(OperationInvocation operationInvocation : classDiff.getExtractedDelegateOperations().values()) {
-                			  if(operationInvocation.matchesOperation(addedOperation)) {
-                    			  ExtractAndMoveOperationRefactoring extractOperationRefactoring =
-                                        new ExtractAndMoveOperationRefactoring(operationBodyMapper, mapper.getOperation2());
-                                  refactorings.add(extractOperationRefactoring);
-                                  deleteAddedOperation(addedOperation);
-                    			  break;
-                    		  }
-                		  }
                 	  }
                   }
                }
